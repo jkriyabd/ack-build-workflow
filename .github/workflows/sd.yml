@@ -12,6 +12,11 @@ jobs:
           submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Debug
+        run: |
+          cat .gitmodules
+          git submodule status
+
       - name: Update KernelSU-Next
         run: |
           git submodule update --init --remote KernelSU-Next
