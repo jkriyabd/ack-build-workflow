@@ -1,49 +1,25 @@
-name: Build Chickernel GKI
+name: Update KernelSU-Next Submodule
 
 on:
   workflow_dispatch:
-    inputs:
-      kernel_image_type:
-        description: 'Kernel image to package (Image.gz, Image.lz4, etc)'
-        required: true
-        default: 'Image.gz' # আমরা এখানে ডিফল্ট .gz করে দিলাম
 
 jobs:
-  build:
+  update-submodule:
     runs-on: ubuntu-latest
     steps:
-      # ১. গিটহাব থেকে আপনার মেইন কার্নেল সোর্স কোড ক্লোন করা
-      - name: Checkout Kernel Source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
-          fetch-depth: 0
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ২. KernelSU-Next সাবমডিউলকে জোরপূর্বক লেটেস্ট ভার্সনে (১২৭৯৭+) আপডেট করা
-      - name: Force Update KernelSU-Next to Latest
+      - name: Update KernelSU-Next
         run: |
-          if [ -d "KernelSU-Next" ]; then
-            cd KernelSU-Next
-            git checkout main || git checkout stable
-            git pull origin main || git pull origin stable
-            cd ..
-          fi
+          git submodule update --remote KernelSU-Next
 
-      # ৩. বিল্ড এনভায়রনমেন্ট এবং টুলচেইন সেটআপ করা
-      - name: Set up Build Environment
+      - name: Commit and Push
         run: |
-          sudo apt-get update
-          sudo apt-get install -y bc build-essential libelf-dev idx config-bzip2 flex bison libssl-dev sysstat
-
-      # ৪. কার্নেল কম্পাইল এবং প্রসেস করা (অটোমেটেড বিল্ড স্ক্রিপ্ট রান)
-      - name: Build and Process Kernel
-        run: |
-          # এখানে আপনার কার্নেলের মূল বিল্ড কমান্ডটি রান হবে
-          # উদাহরণস্বরূপ: ./build_sh.sh অথবা make দিয়ে যা দেওয়া থাকে
-          echo "Starting Chickernel Build..."
-          
-      # ৫. AnyKernel3 দিয়ে ফ্ল্যাশেবল জিপ ফাইল তৈরি করা
-      - name: Pack Flashing ZIP (AnyKernel3)
-        run: |
-          echo "Packaging Kernel Image into AnyKernel3 ZIP..."
-          # জিপ করার অটোমেটেড কমান্ড এখানে এক্সিকিউট হবে
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add KernelSU-Next
+          git commit -m "KSUN: update to latest next-susfs" || echo "No changes"
+          git push
