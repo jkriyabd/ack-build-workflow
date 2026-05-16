@@ -14,7 +14,7 @@ jobs:
 
       - name: Update KernelSU-Next
         run: |
-          git submodule update --remote KernelSU-Next
+          git submodule update --init --remote KernelSU-Next
 
       - name: Commit and Push
         run: |
